@@ -37,10 +37,9 @@ FORMS += \
         mainwindow.ui
 
 INCLUDEPATH += \
-            /home/sl.truman/Public/OpenSceneGraph/include \
-            /home/sl.truman/Public/OpenSceneGraph/build/include \
+            $$PWD/../OpenSceneGraph/include \
 
-LIBS += -L/home/sl.truman/Public/OpenSceneGraph/build/lib -lOpenThreadsd -losgd -losgDBd -losgUtild -losgGAd -losgViewerd -losgTextd -losgFXd -losgManipulatord -losgAnimationd\
+LIBS += -L$$PWD/../OpenSceneGraph/lib -lOpenThreadsd -losgd -losgDBd -losgUtild -losgGAd -losgViewerd -losgTextd -losgFXd -losgManipulatord -losgAnimationd\
         -L/usr/lib64 -lxml2 \
 
 # Default rules for deployment.
