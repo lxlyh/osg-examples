@@ -13,13 +13,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushButton_paly_clicked()
-{
-    //从动画列表中选择一个动画，播放
-    ui->openGLWidget->play1();
-}
-
 void MainWindow::on_pushButton_paly2_clicked()
 {
     ui->openGLWidget->play2();
+}
+
+void MainWindow::on_pushButton_paly1_clicked()
+{
+    ui->openGLWidget->play1();
 }

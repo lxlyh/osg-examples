@@ -1,13 +1,27 @@
 #include "osgwidget.h"
 
 void OSGWidget::play1() {
-    auto a = anim->getAnimationList()[0];
-    anim->addNestedCallback(new MyCallback(anim,a));
+    auto model = dynamic_cast<Switch*>(globelScene);
+    auto openDoor = model->getChild(1); //获取开门动画
+
+    am = dynamic_cast<osgAnimation::BasicAnimationManager*>(openDoor->getUpdateCallback());
+    am->getAnimationList()[0]->setPlayMode(Animation::PlayMode::ONCE);
+    am->playAnimation(am->getAnimationList()[0]);
+
+    model->setValue(0,false);
+    model->setValue(1,true);
 }
 
 void OSGWidget::play2() {
-    auto a = anim->getAnimationList()[0];
-    anim->addNestedCallback(new MyCallback(anim,a,60,60));
+    auto model = dynamic_cast<Switch*>(globelScene);
+    auto closeDoor = model->getChild(0);
+
+    am = dynamic_cast<osgAnimation::BasicAnimationManager*>(closeDoor->getUpdateCallback());
+    am->getAnimationList()[0]->setPlayMode(Animation::PlayMode::ONCE);
+    am->playAnimation(am->getAnimationList()[0]);
+
+    model->setValue(1,false);
+    model->setValue(0,true);
 }
 
 OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
@@ -15,15 +29,16 @@ OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
     gw = new GraphicsWindowEmbedded(0, 0, width(), height());
     world = new Group();
 
+    auto model = new Switch();
+    globelScene = model;
+
     //读取带动画的节点
-    auto animationNode = osgDB::readNodeFile("../OpenSceneGraph-Data/animations-3.fbx");
+    auto openDoor = osgDB::readNodeFile("../OpenSceneGraph-Data/CeShiMen01.fbx");
+    auto closeDoor = osgDB::readNodeFile("../OpenSceneGraph-Data/CeShiMen02.fbx");
 
-    //获得节点的动画列表
-    anim = dynamic_cast<osgAnimation::BasicAnimationManager*>(animationNode->getUpdateCallback());
-    auto a = anim->getAnimationList()[0];
-    anim->playAnimation(a);
+    model->addChild(closeDoor,true);
+    model->addChild(openDoor,false);
 
-    globelScene->addChild(animationNode);
     world->addChild(globelScene);
 
     viewer = new Viewer();

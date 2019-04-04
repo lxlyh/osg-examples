@@ -40,41 +40,15 @@ class OSGWidget : public QOpenGLWidget
 {
     class MyCallback : public NodeCallback
     {
-        BasicAnimationManager* am;
-        Animation* a;
-        QTime startTime;
-        int frameNum,frameRate;
-
     public:
-        MyCallback(BasicAnimationManager* am,Animation* a,int frameStart = 0,int frameNum = 60,int frameRate = 24) {
-            this->am = am;
-            this->a = a;
-            this->frameNum = frameNum;
-            this->frameRate = frameRate;
-            am->playAnimation(a);
-            startTime.start();
-
-            if(frameStart > 0)
-                a->setStartTime(static_cast<double>(frameStart) / frameRate);
+        MyCallback() {
         }
 
         ~MyCallback() {}
 
         virtual void operator()(Node* node,NodeVisitor* nv)
         {
-            auto milliseconds = startTime.elapsed();
-            auto seconds = milliseconds / 1000.0;
-            auto num = static_cast<int>(milliseconds * frameRate / 1000.0);
-            std::cout << "seconds:" << seconds << " frames:" << num << " time:" << std::endl;
-
-            if(num < frameNum) {
-                traverse(node,nv);
-            }
-            else {
-                cout << "stop" << std::endl;
-                this->am->stopAnimation(a);
-                this->am->removeNestedCallback(this);
-            }
+            traverse(node,nv);
         }
     } *mycallback;
 
@@ -96,7 +70,7 @@ protected:
     virtual void keyPressEvent(QKeyEvent* event);
     virtual void keyReleaseEvent(QKeyEvent* event);
 private:
-    osgAnimation::BasicAnimationManager* anim;
+    osgAnimation::BasicAnimationManager* am;
     osgAnimation::AnimationList* list;
 
     ref_ptr<GraphicsWindowEmbedded> gw;

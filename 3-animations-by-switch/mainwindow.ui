@@ -25,16 +25,16 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QPushButton" name="pushButton_paly">
+       <widget class="QPushButton" name="pushButton_paly1">
         <property name="text">
-         <string>动画1</string>
+         <string>关门</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_paly2">
         <property name="text">
-         <string>动画2</string>
+         <string>开门</string>
         </property>
        </widget>
       </item>
