@@ -29,11 +29,13 @@ SOURCES += \
         mainwindow.cpp \
     doc.cpp \
     osgwidget.cpp \
+    myviewer.cpp
 
 HEADERS += \
         mainwindow.h \
     doc.h \
     osgwidget.h \
+    myviewer.h
 
 FORMS += \
         mainwindow.ui

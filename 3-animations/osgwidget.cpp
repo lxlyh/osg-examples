@@ -1,16 +1,39 @@
 #include "osgwidget.h"
 
 void OSGWidget::play1() {
-    auto a = anim->getAnimationList()[0];
-    anim->addNestedCallback(new MyCallback(anim,a));
+    auto a = am->getAnimationList()[0];
+    frameStart = 0;
+    frameNum = 60;
+
+    viewer->f = [&](FrameStamp* stamp){
+
+        if(stamp->getFrameNumber() == 60){
+             qDebug() << stamp->getFrameNumber();
+            am->stopAll();
+        }
+    };
+    viewer->getFrameStamp()->setFrameNumber(0);
+
+    am->playAnimation(a);
 }
 
 void OSGWidget::play2() {
-    auto a = anim->getAnimationList()[0];
-    anim->addNestedCallback(new MyCallback(anim,a,60,60));
+    auto a = am->getAnimationList()[0];
+
+    viewer->f = [&](FrameStamp* stamp){
+
+        if(stamp->getFrameNumber() == 60){
+            qDebug() << stamp->getFrameNumber();
+            am->stopAll();
+        }
+    };
+
+    viewer->getFrameStamp()->setFrameNumber(0);
+    am->playAnimation(a);
+    a->setStartTime(2.5);
 }
 
-OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
+OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent),frameNum(0)
 {
     gw = new GraphicsWindowEmbedded(0, 0, width(), height());
     world = new Group();
@@ -19,14 +42,12 @@ OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
     auto animationNode = osgDB::readNodeFile("../OpenSceneGraph-Data/animations-3.fbx");
 
     //获得节点的动画列表
-    anim = dynamic_cast<osgAnimation::BasicAnimationManager*>(animationNode->getUpdateCallback());
-    auto a = anim->getAnimationList()[0];
-    anim->playAnimation(a);
+    am = dynamic_cast<osgAnimation::BasicAnimationManager*>(animationNode->getUpdateCallback());
 
     globelScene->addChild(animationNode);
     world->addChild(globelScene);
 
-    viewer = new Viewer();
+    viewer = new MyViewer();
     viewer->setSceneData(world);
     viewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
     viewer->getCamera()->setGraphicsContext(gw.get());
@@ -43,8 +64,9 @@ void OSGWidget::resizeGL(int width, int height)
 
 void OSGWidget::paintGL()
 {
-    if (viewer.valid())
+    if (viewer.valid()) {
         viewer->frame();
+    }
     update();
 }
 
