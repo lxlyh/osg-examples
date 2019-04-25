@@ -1,5 +1,5 @@
 #include "doc.h"
 
 Selection* globelSections = new Selection;
-TabBoxDragger* globelDragger = new TabBoxDragger;
+TrackballDragger* globelDragger = new TrackballDragger;
 Group* globelScene = new Group();
