@@ -33,8 +33,8 @@ OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
     globelScene = model;
 
     //读取带动画的节点
-    auto openDoor = osgDB::readNodeFile("../OpenSceneGraph-Data/CeShiMen01.fbx");
-    auto closeDoor = osgDB::readNodeFile("../OpenSceneGraph-Data/CeShiMen02.fbx");
+    auto openDoor = osgDB::readNodeFile("../OpenSceneGraph-Data/开门.fbx");
+    auto closeDoor = osgDB::readNodeFile("../OpenSceneGraph-Data/关门.fbx");
 
     model->addChild(closeDoor,true);
     model->addChild(openDoor,false);

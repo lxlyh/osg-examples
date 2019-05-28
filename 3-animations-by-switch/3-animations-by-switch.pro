@@ -41,8 +41,8 @@ FORMS += \
 INCLUDEPATH += \
             $$PWD/../OpenSceneGraph/include \
 
-LIBS += -L$$PWD/../OpenSceneGraph/lib -lOpenThreadsd -losgd -losgDBd -losgUtild -losgGAd -losgViewerd -losgTextd -losgFXd -losgManipulatord -losgAnimationd \
-        -L/usr/lib64 -lxml2 \
+LIBS += -L$$PWD/../OpenSceneGraph/lib -lOpenThreads -losg -losgDB -losgUtil -losgGA -losgViewer -losgText -losgFX -losgManipulator -losgAnimation \
+        -lxml2 \
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
