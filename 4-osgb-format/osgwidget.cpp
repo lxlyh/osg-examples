@@ -6,7 +6,6 @@ OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
     world = new Group();
     globelScene = new Group();
 
-
     auto model = readNodeFile("../OpenSceneGraph-Data/测试.osgb");
     globelScene->addChild(model);
     world->addChild(globelScene);
