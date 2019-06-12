@@ -16,11 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="OSGWidget" name="openGLWidget">
-      <property name="focusPolicy">
-       <enum>Qt::ClickFocus</enum>
-      </property>
-     </widget>
+     <widget class="OSGWidget" name="openGLWidget"/>
     </item>
    </layout>
   </widget>
@@ -30,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>407</width>
-     <height>27</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>

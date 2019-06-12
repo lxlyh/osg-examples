@@ -1,37 +1,59 @@
+
 #include "osgwidget.h"
+
+osgParticle::ModularEmitter *emitter = new osgParticle::ModularEmitter;
+osgParticle::ParticleSystemUpdater *psu = new osgParticle::ParticleSystemUpdater;
+osgParticle::ParticleSystem *ps = new osgParticle::ParticleSystem;
+
+Group* model;
 
 OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
     gw = new GraphicsWindowEmbedded(0, 0, width(), height());
     world = new Group();
 
-    auto model = dynamic_cast<Group*>(readNodeFile("../5-particle/kongtiao.fbx"));
-
+    model = dynamic_cast<Group*>(readNodeFile("../5-particle/原版.FBX"));
     world->addChild(model);
-    viewer = new Viewer();
-
-//    // 设置雪花类
-    osg::ref_ptr<osgParticle::PrecipitationEffect> precipitationEffect = new osgParticle::PrecipitationEffect;
-    // 设置雪花浓度
-    precipitationEffect->snow(1);
-
-    //设置雪花颜色
-    precipitationEffect->setParticleColor(osg::Vec4(1, 1, 1, 1));
-
-    //设置风向
-    precipitationEffect->setWind(osg::Vec3(0, 1, 0.9));
 
     //添加特效
-    auto dynamicNode = dynamic_cast<Group*>(model->getChild(0));
+    Group* dynamicNode = dynamic_cast<Group*>(model->getChild(0));
     std::cout << dynamicNode->getName() << " " << dynamicNode->getNumChildren() << std::endl;
-    auto particleMatrix = dynamic_cast<MatrixTransform*>(dynamicNode->getChild(2));
+    MatrixTransform* particleMatrix = dynamic_cast<MatrixTransform*>(dynamicNode->getChild(1));
     std::cout << particleMatrix->getName() << " " << particleMatrix->getNumChildren() << std::endl;
-    auto particleBox = dynamic_cast<Geode*>(particleMatrix->getChild(0));
+    MatrixTransform* particleMatrix2 = dynamic_cast<MatrixTransform*>(particleMatrix->getChild(0));
+    std::cout << particleMatrix2->getName() << " " << particleMatrix2->getNumChildren() << std::endl;
+    Geode* particleBox = dynamic_cast<Geode*>(particleMatrix2->getChild(0));
+    std::cout << "radius:" << particleBox->getBound().radius() << std::endl;
 
-    auto fog = precipitationEffect->getFog();
+    //粒子参数
+    ps->setDefaultAttributes("", true, false);
 
-    particleBox->addChild(precipitationEffect);
+    osgParticle::Particle& pexplosion = ps->getDefaultParticleTemplate();
+    pexplosion.setLifeTime(3);   //粒子时间
+    pexplosion.setColorRange(osgParticle::rangev4(Vec4(1,1,1,1),Vec4(0,0,1,1)));  //颜色
+    pexplosion.setSizeRange(osgParticle::rangef(5.0f, 10.0f));
 
+    osgParticle::RadialShooter *shooter = new osgParticle::RadialShooter;
+    shooter->setInitialSpeedRange(100, 500);
+
+    osgParticle::SectorPlacer *placer = new osgParticle::SectorPlacer;
+    placer->setRadiusRange(osgParticle::rangef(0,particleBox->getBound().radius())); //粒子区域
+
+
+    emitter->setParticleSystem(ps);
+    emitter->setShooter(shooter);
+    emitter->setPlacer(placer);
+
+    osgParticle::RandomRateCounter *rrc = static_cast<osgParticle::RandomRateCounter *>(emitter->getCounter());
+    rrc->setRateRange(200, 300);    // generate 20 to 30 particles per second
+
+    psu->addParticleSystem(ps);
+
+    particleMatrix->addChild(emitter);
+    particleMatrix->addChild(psu);
+    particleBox->addDrawable(ps);
+
+    viewer = new Viewer();
     viewer->setSceneData(world);
     viewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
     viewer->getCamera()->setGraphicsContext(gw.get());
@@ -113,6 +135,20 @@ void OSGWidget::wheelEvent(QWheelEvent *event)
 
 void OSGWidget::keyPressEvent(QKeyEvent* event)
 {
+    //添加特效
+    Group* dynamicNode = dynamic_cast<Group*>(model->getChild(0));
+    std::cout << dynamicNode->getName() << " " << dynamicNode->getNumChildren() << std::endl;
+    MatrixTransform* particleMatrix = dynamic_cast<MatrixTransform*>(dynamicNode->getChild(1));
+    std::cout << particleMatrix->getName() << " " << particleMatrix->getNumChildren() << std::endl;
+    MatrixTransform* particleMatrix2 = dynamic_cast<MatrixTransform*>(particleMatrix->getChild(0));
+    std::cout << particleMatrix2->getName() << " " << particleMatrix2->getNumChildren() << std::endl;
+    Geode* particleBox = dynamic_cast<Geode*>(particleMatrix2->getChild(0));
+    std::cout << "radius:" << particleBox->getBound().radius() << std::endl;
+
+    particleMatrix->removeChild(emitter);
+    particleMatrix->removeChild(psu);
+    particleBox->removeDrawable(ps);
+
     gw->getEventQueue()->keyPress((osgGA::GUIEventAdapter::KeySymbol) *(event->text().toUtf8().data()));
 }
 

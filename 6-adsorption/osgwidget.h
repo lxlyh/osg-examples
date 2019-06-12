@@ -1,6 +1,8 @@
 #ifndef OSGWIDGET_H
 #define OSGWIDGET_H
 
+#include "placedeventhandler.h"
+
 #include <QOpenGLWidget>
 #include <QMouseEvent>
 #include <QDebug>
@@ -17,24 +19,11 @@
 #include <osgFX/Scribe>
 #include <osgUtil/Optimizer>
 #include <osgUtil/Simplifier>
+#include <osgAnimation/BasicAnimationManager>
 #include <osgManipulator/Selection>
 #include <osgManipulator/TabBoxDragger>
 #include <osgManipulator/CommandManager>
 #include <osgViewer/View>
-
-#include <osgParticle/PrecipitationEffect>
-
-#include <osgParticle/Particle>
-#include <osgParticle/ParticleSystem>
-#include <osgParticle/ParticleSystemUpdater>
-#include <osgParticle/ModularEmitter>
-#include <osgParticle/ModularProgram>
-#include <osgParticle/RandomRateCounter>
-#include <osgParticle/SectorPlacer>
-#include <osgParticle/RadialShooter>
-#include <osgParticle/AccelOperator>
-#include <osgParticle/FluidFrictionOperator>
-
 
 
 using namespace osg;
@@ -43,7 +32,6 @@ using namespace osgDB;
 using namespace osgGA;
 using namespace osgFX;
 using namespace osgUtil;
-using namespace osgParticle;
 
 class OSGWidget : public QOpenGLWidget
 {
