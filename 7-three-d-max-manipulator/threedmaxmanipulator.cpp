@@ -19,6 +19,7 @@ int ThreeDMaxManipulator::_minimumDistanceFlagIndex = allocateRelativeFlag();
 ThreeDMaxManipulator::ThreeDMaxManipulator(MatrixTransform* world) {
     ThreeDMaxManipulator();
     this->world = world;
+    this->altPressed = false;
     initWorldMatrix = world->getMatrix();
 }
 
@@ -251,17 +252,22 @@ double ThreeDMaxManipulator::getMinimumDistance( bool *relativeToModelSize ) con
     return _minimumDistance;
 }
 
+void ThreeDMaxManipulator::setDistance( double distance )
+{
+    _distance = distance;
+}
+
+double ThreeDMaxManipulator::getDistance() const
+{
+    return _distance;
+}
+
 bool ThreeDMaxManipulator::handleKeyDown( const GUIEventAdapter& ea, GUIActionAdapter& us )
 {
-    auto view = dynamic_cast<osgViewer::View*>(&us);
-    LineSegmentIntersector::Intersections lis;
-
     switch(ea.getKey()){
     case GUIEventAdapter::KEY_Alt_L:
     case GUIEventAdapter::KEY_Alt_R:
-        if(!view->computeIntersections(ea.getX(),ea.getY(),lis)) return false;
         altPressed = true;
-        centerRotated = lis.begin()->getWorldIntersectPoint();
         return true;
     case GUIEventAdapter::KEY_Z:
         world->setMatrix(initWorldMatrix);
@@ -275,13 +281,10 @@ bool ThreeDMaxManipulator::handleKeyDown( const GUIEventAdapter& ea, GUIActionAd
 /// Handles GUIEventAdapter::KEYUP event.
 bool ThreeDMaxManipulator::handleKeyUp( const GUIEventAdapter& ea, GUIActionAdapter& us )
 {
-    auto view = dynamic_cast<osgViewer::View*>(&us);
-    auto tdmm = dynamic_cast<ThreeDMaxManipulator*>(view->getCameraManipulator());
     switch(ea.getKey()){
     case GUIEventAdapter::KEY_Alt_L:
     case GUIEventAdapter::KEY_Alt_R:
         altPressed = false;
-        centerRotated = tdmm->getCenter();
         return true;
     }
 
@@ -291,14 +294,31 @@ bool ThreeDMaxManipulator::handleKeyUp( const GUIEventAdapter& ea, GUIActionAdap
 /// Handles GUIEventAdapter::PUSH event.
 bool ThreeDMaxManipulator::handleMousePush( const GUIEventAdapter& ea, GUIActionAdapter& us )
 {
+    auto view = dynamic_cast<osgViewer::View*>(&us);
+    LineSegmentIntersector::Intersections lis;
     if(altPressed && GUIEventAdapter::MIDDLE_MOUSE_BUTTON == ea.getButtonMask()) {
+        if(!view->computeIntersections(ea.getX(),ea.getY(),lis)) return false;
         mouseX = ea.getX();
         mouseY = ea.getY();
+        centerRotated = lis.begin()->getWorldIntersectPoint();
         return true;
     }
 
     return inherited::handleMousePush(ea,us);
 }
+
+bool ThreeDMaxManipulator::handleMouseRelease( const GUIEventAdapter& ea, GUIActionAdapter& us )
+{
+    auto view = dynamic_cast<osgViewer::View*>(&us);
+    auto tdmm = dynamic_cast<ThreeDMaxManipulator*>(view->getCameraManipulator());
+    if(!altPressed && GUIEventAdapter::MIDDLE_MOUSE_BUTTON == ea.getButtonMask()) {
+        centerRotated = tdmm->getCenter();
+        return true;
+    }
+
+    return inherited::handleMousePush(ea,us);
+}
+
 
 /// Handles GUIEventAdapter::DRAG event.
 bool ThreeDMaxManipulator::handleMouseDrag( const GUIEventAdapter& ea, GUIActionAdapter& us )
@@ -314,7 +334,6 @@ bool ThreeDMaxManipulator::handleMouseDrag( const GUIEventAdapter& ea, GUIAction
         mouseY = ea.getY();
         return true;
     }
-
 
     return inherited::handleMouseDrag(ea,us);
 }

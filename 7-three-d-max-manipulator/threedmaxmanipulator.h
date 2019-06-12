@@ -8,6 +8,7 @@ using namespace osg;
 #include <osgGA/StandardManipulator>
 using namespace osgGA;
 
+//namespace osgGA {
 class ThreeDMaxManipulator : public StandardManipulator
 {
     typedef StandardManipulator inherited;
@@ -16,6 +17,8 @@ public:
     ThreeDMaxManipulator(int flags = DEFAULT_SETTINGS);
     ThreeDMaxManipulator(MatrixTransform* world);
     ThreeDMaxManipulator( const ThreeDMaxManipulator& om, const osg::CopyOp& copyOp = osg::CopyOp::SHALLOW_COPY );
+
+    //META_Object( osgGA, ThreeDMaxManipulator );
 
     //CameraManipulator
     /** set the position of the matrix manipulator using a 4x4 Matrix.*/
@@ -49,6 +52,12 @@ public:
     virtual void setMinimumDistance( const double& minimumDistance, bool relativeToModelSize = false );
     double getMinimumDistance( bool *relativeToModelSize = NULL ) const;
 
+    /** Set the distance of camera to the center. */
+    void setDistance( double distance );
+
+    /** Get the distance of the camera to the center. */
+    double getDistance() const;
+
 protected:
     MatrixTransform* world;
 
@@ -56,7 +65,9 @@ protected:
     virtual bool handleKeyDown( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& us );
     virtual bool handleKeyUp( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& us );
     virtual bool handleMousePush( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& us );
+    virtual bool handleMouseRelease( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& us );
     virtual bool handleMouseDrag( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& us );
+
     bool altPressed;
     osg::Vec3 centerRotated;
     int mouseX,mouseY;
@@ -77,5 +88,5 @@ protected:
     double _minimumDistance;
     static int _minimumDistanceFlagIndex;
 };
-
+//}
 #endif // THREEDMAXMANIPULATOR_H
