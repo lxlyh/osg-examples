@@ -1,4 +1,4 @@
-#ifndef THREEDMAXMANIPULATOR_H
+﻿#ifndef THREEDMAXMANIPULATOR_H
 #define THREEDMAXMANIPULATOR_H
 
 #include <osg/PositionAttitudeTransform>
@@ -8,17 +8,18 @@ using namespace osg;
 #include <osgGA/StandardManipulator>
 using namespace osgGA;
 
-//namespace osgGA {
+namespace osgGA {
 class ThreeDMaxManipulator : public StandardManipulator
 {
     typedef StandardManipulator inherited;
-
+    static const auto KEY_ALT = 16777251;
+    static const auto KEY_Z = 90;
 public:
     ThreeDMaxManipulator(int flags = DEFAULT_SETTINGS);
     ThreeDMaxManipulator(MatrixTransform* world);
     ThreeDMaxManipulator( const ThreeDMaxManipulator& om, const osg::CopyOp& copyOp = osg::CopyOp::SHALLOW_COPY );
 
-    //META_Object( osgGA, ThreeDMaxManipulator );
+    META_Object( osgGA, ThreeDMaxManipulator )
 
     //CameraManipulator
     /** set the position of the matrix manipulator using a 4x4 Matrix.*/
@@ -68,9 +69,9 @@ protected:
     virtual bool handleMouseRelease( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& us );
     virtual bool handleMouseDrag( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& us );
 
-    bool altPressed;
+    bool altPressed,midPressed;
     osg::Vec3 centerRotated;
-    int mouseX,mouseY;
+    int mouseX,mouseY,centerX,centerY;
     Matrix initWorldMatrix;
 
     virtual bool handleMouseWheel( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& us );
@@ -88,5 +89,5 @@ protected:
     double _minimumDistance;
     static int _minimumDistanceFlagIndex;
 };
-//}
+}
 #endif // THREEDMAXMANIPULATOR_H

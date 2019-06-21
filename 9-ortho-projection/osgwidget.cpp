@@ -1,4 +1,5 @@
 #include "osgwidget.h"
+#include "manipulators/defaultmanipulator.h"
 
 std::ostream& operator<<(std::ostream& out,Vec3 v3) {
     out << "x:" << v3.x() << " y:" << v3.y() << " z:" << v3.z();
@@ -11,8 +12,7 @@ OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
     world = new Group();
     globelScene = new Group();
 
-
-    auto model = readNodeFile("../OpenSceneGraph-Data/cow.osg");
+    auto model = readNodeFile("../OpenSceneGraph-Data/glider.osg");
     globelScene->addChild(model);
     world->addChild(globelScene);
 
@@ -20,38 +20,53 @@ OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
     viewer->setSceneData(world);
     viewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
     viewer->getCamera()->setGraphicsContext(gw.get());
+    auto om = new DefaultManipulator;
+    //auto om = new OrbitManipulator;
+    om->setHomePosition(Vec3(1,1,1),Vec3(0,0,0),Vec3(0,1,0));
+    om->home(0);
+
+    viewer->setCameraManipulator(om,false);
 
     auto ca = viewer->getCamera();
-    auto om = new osgGA::OrbitManipulator;
-
 
     auto b = model->getBound();
     auto c = b.center();
-    auto r = b.radius();
+    auto r = b.radius() * 2;
     auto ratio = 1. * width() / height();
-    auto range = 1.0;
+    auto range = 1.0; //缩放
 
-    auto left = (c.x() - r * ratio) * range;
-    auto right = (c.x() + r * ratio) * range;
-    auto bottom = (c.z() - r) * range;
-    auto top = (c.z() + r) * range;
-    auto near = (c.y() - r) * range;
-    auto far = (c.y() + r) * range;
+    auto left = (c.x() - r * ratio);
+    auto right = (c.x() + r * ratio);
+    auto bottom = (c.z() - r);
+    auto top = (c.z() + r);
+    auto near = (c.y() - r);
+    auto far = (c.y() + r);
 
     ca->setProjectionMatrixAsOrtho(left,right,
                                    bottom,top,
                                    near,far);
+    om->setTransformation(Vec3(0,0,r),Vec3(0,0,0),Vec3(0,1,0));
 
     ca->setViewport(new Viewport(0, 0, width(),height()));
-    viewer->setCameraManipulator(om,false);
 
-    om->setCenter(Vec3(0,0,0));
-    om->setRotation(Quat(DegreesToRadians(0.),X_AXIS)); //上面
-    om->setRotation(Quat(DegreesToRadians(90.),X_AXIS)); //正面
-    om->setRotation(Quat(DegreesToRadians(90.),Z_AXIS)); //左面
-    om->setRotation(Quat(DegreesToRadians(-90.),Z_AXIS)); //右面
-    om->setRotation(Quat(DegreesToRadians(180.),Z_AXIS)); //后面
-    om->setRotation(Quat(DegreesToRadians(180.),X_AXIS)); //下面
+//    om->setCenter(Vec3(0,0,0));
+//    om->setRotation(Quat(DegreesToRadians(0.),X_AXIS)); //上面
+//    om->setRotation(Quat(DegreesToRadians(90.),X_AXIS)); //正面
+//    om->setRotation(Quat(DegreesToRadians(90.),Z_AXIS)); //左面
+//    om->setRotation(Quat(DegreesToRadians(-90.),Z_AXIS)); //右面
+//    om->setRotation(Quat(DegreesToRadians(180.),Z_AXIS)); //后面
+//    om->setRotation(Quat(DegreesToRadians(180.),X_AXIS)); //下面
+    viewer->addEventHandler(new PrejectionHandler(this));
+}
+
+bool PrejectionHandler::handle(const GUIEventAdapter& ea,GUIActionAdapter& aa) {
+    std::cout << "xxx";
+    switch(ea.getEventType()) {
+        case GUIEventAdapter::SCROLL:
+        //widget->refreshOrthoProjection(widget->om->getCenter(),widget->om->getDistance());
+        std::cout << "ss";
+        break;
+    }
 }
 
 void OSGWidget::resizeGL(int width, int height)
@@ -125,13 +140,14 @@ void OSGWidget::wheelEvent(QWheelEvent *event)
     gw->getEventQueue()->mouseScroll(event->delta() < 0 ? osgGA::GUIEventAdapter::SCROLL_UP : osgGA::GUIEventAdapter::SCROLL_DOWN);
 }
 
-void OSGWidget::keyPressEvent(QKeyEvent* event)
+void OSGWidget::keyPressEvent(QKeyEvent* ev)
 {
-    gw->getEventQueue()->keyPress((osgGA::GUIEventAdapter::KeySymbol) *(event->text().toUtf8().data()));
+    if(osgGA::GUIEventAdapter::KEY_Escape == ev->nativeVirtualKey()) return;
+    gw->getEventQueue()->keyPress((osgGA::GUIEventAdapter::KeySymbol) ev->key());
 }
 
-void OSGWidget::keyReleaseEvent(QKeyEvent* event)
+void OSGWidget::keyReleaseEvent(QKeyEvent* ev)
 {
-    gw->getEventQueue()->keyRelease((osgGA::GUIEventAdapter::KeySymbol)*(event->text().toUtf8().data()));
+    if(osgGA::GUIEventAdapter::KEY_Escape == ev->nativeVirtualKey()) return;
+    gw->getEventQueue()->keyRelease((osgGA::GUIEventAdapter::KeySymbol)ev->key());
 }
-

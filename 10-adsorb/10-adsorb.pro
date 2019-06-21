@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = 9-ortho-projection
+TARGET = 10-adsorb
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -28,14 +28,12 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     osgwidget.cpp \
-    common.cpp \
-    manipulators/defaultmanipulator.cpp
+    adsorptionhandler.cpp
 
 HEADERS += \
         mainwindow.h \
     osgwidget.h \
-    common.h \
-    manipulators/defaultmanipulator.h
+    adsorptionhandler.h
 
 FORMS += \
         mainwindow.ui

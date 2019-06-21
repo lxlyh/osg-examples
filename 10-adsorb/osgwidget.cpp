@@ -1,44 +1,34 @@
 #include "osgwidget.h"
-#include <osgGA/OrbitManipulator>
-#include <osgGA/NodeTrackerManipulator>
+#include "adsorptionhandler.h"
 
 OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
 {
     gw = new GraphicsWindowEmbedded(0, 0, width(), height());
-    world = new MatrixTransform();
+    world = new Group();
+    globelScene = new Group();
 
     auto model = readNodeFile("../OpenSceneGraph-Data/glider.osg");
-    model->setName("glider");
-    auto pat = new PositionAttitudeTransform();
-    pat->addChild(model);
-    pat->setPosition(Vec3(2,0,0));
-    auto pat2 = new PositionAttitudeTransform();
-    pat2->setPosition(Vec3(1,0,0));
-    pat2->addChild(pat);
-    world->addChild(pat2);
+    globelScene->setName("ground");
 
-    auto axies = readNodeFile("../OpenSceneGraph-Data/axes.osgt");
-    axies->setName("axies");
-    pat = new PositionAttitudeTransform();
-    pat->addChild(axies);
-    pat->setPosition(Vec3(0,0,0));
-    world->addChild(pat);
+    MatrixTransform *pos1 = new MatrixTransform,*pos2 = new MatrixTransform;
+    pos1->setMatrix(Matrix::translate(-2,0,0));
+    pos2->setMatrix(Matrix::translate(2,0,0));
+
+    pos1->addChild(model);
+    pos2->addChild(model);
+
+    globelScene->addChild(pos1);
+    globelScene->addChild(pos2);
+    world->addChild(globelScene);
 
     viewer = new Viewer();
     viewer->setSceneData(world);
-
     viewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
     viewer->getCamera()->setGraphicsContext(gw.get());
     viewer->getCamera()->setProjectionMatrixAsPerspective(35.0, 1.0 * this->width() / this->height(), 1, 10000.0);
     viewer->getCamera()->setViewport(new Viewport(0, 0, this->width(), this->height()));
-
-    auto tm = new ThreeDMaxManipulator();
-    tm->setAllowThrow(false);
-    viewer->setCameraManipulator(tm);
-
-
-    auto handler = new PlacedEventHandler;
-    viewer->addEventHandler(handler);
+    viewer->setCameraManipulator(new osgGA::OrbitManipulator);
+    viewer->addEventHandler(new AdsorptionHandler());
 }
 
 void OSGWidget::resizeGL(int width, int height)
@@ -104,22 +94,21 @@ void OSGWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void OSGWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    gw->getEventQueue()->mouseMotion(event->x(), event->y());
+     gw->getEventQueue()->mouseMotion(event->x(), event->y());
 }
 
 void OSGWidget::wheelEvent(QWheelEvent *event)
 {
-    std::cout << "wheel" << std::endl;
     gw->getEventQueue()->mouseScroll(event->delta() < 0 ? osgGA::GUIEventAdapter::SCROLL_UP : osgGA::GUIEventAdapter::SCROLL_DOWN);
 }
 
 void OSGWidget::keyPressEvent(QKeyEvent* event)
 {
-    gw->getEventQueue()->keyPress((osgGA::GUIEventAdapter::KeySymbol) event->nativeVirtualKey());
+    gw->getEventQueue()->keyPress((osgGA::GUIEventAdapter::KeySymbol) *(event->text().toUtf8().data()));
 }
 
 void OSGWidget::keyReleaseEvent(QKeyEvent* event)
 {
-    gw->getEventQueue()->keyRelease((osgGA::GUIEventAdapter::KeySymbol) event->nativeVirtualKey());
+    gw->getEventQueue()->keyRelease((osgGA::GUIEventAdapter::KeySymbol)*(event->text().toUtf8().data()));
 }
 

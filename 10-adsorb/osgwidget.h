@@ -30,16 +30,6 @@ using namespace osgGA;
 using namespace osgFX;
 using namespace osgUtil;
 
-class OSGWidget;
-
-class PrejectionHandler : public GUIEventHandler {
-public:
-    PrejectionHandler(OSGWidget* widget) {this->widget = widget;}
-    virtual ~PrejectionHandler() {}
-    virtual bool handle(const GUIEventAdapter& ea,GUIActionAdapter& aa);
-    OSGWidget* widget;
-};
-
 class OSGWidget : public QOpenGLWidget
 {
 public:
@@ -48,7 +38,6 @@ public:
 protected:
     virtual void resizeGL(int width,int height);
     virtual void paintGL();
-
 
     //GUI交互
     virtual void mousePressEvent(QMouseEvent *event);
