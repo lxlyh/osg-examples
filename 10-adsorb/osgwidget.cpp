@@ -5,6 +5,7 @@ OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
 {
     gw = new GraphicsWindowEmbedded(0, 0, width(), height());
     world = new Group();
+    world->setName("initWorld");
     globelScene = new Group();
 
     auto model = readNodeFile("../OpenSceneGraph-Data/glider.osg");

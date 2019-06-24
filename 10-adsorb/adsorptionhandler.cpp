@@ -18,11 +18,12 @@ std::ostream& operator<<(std::ostream& out,Vec3 v3) {
     return out;
 }
 
-AdsorptionHandler::AdsorptionHandler()
+AdsorptionHandler::AdsorptionHandler() : sPressed(false),lbPressed(false)
 {}
 
 bool AdsorptionHandler::handle(const GUIEventAdapter& ea,GUIActionAdapter& aa) {
     auto view = dynamic_cast<osgViewer::View*>(&aa);
+    LineSegmentIntersector::Intersections lis;
 
     switch(ea.getEventType()) {
     case GUIEventAdapter::KEYDOWN:
@@ -32,60 +33,78 @@ bool AdsorptionHandler::handle(const GUIEventAdapter& ea,GUIActionAdapter& aa) {
         if(GUIEventAdapter::KEY_S == ea.getKey()) sPressed = false;
     return true;
     case GUIEventAdapter::MOVE: {
-        if(!sPressed) break;
-        LineSegmentIntersector::Intersections lis;
+        if(!sPressed || lbPressed) break;
         if(!view->computeIntersections(ea.getX(),ea.getY(),lis)) break;
         auto hit  = *lis.begin();
-        if(3 >= hit.nodePath.size()) return false;
 
         auto point = hit.getWorldIntersectPoint();
         auto score = DBL_MAX;
 
-        for(auto p : hit.nodePath) {
-            cout << p << ' ' << p->className() << ' ' << p->getName() << endl;
-        }
+        cout << "point:" << point << endl;
 
-        auto matrix = dynamic_cast<MatrixTransform*>(hit.nodePath.at(3));
-        auto model = dynamic_cast<Drawable*>(hit.nodePath.at(4));
+        modelMatrixTransformPicked = dynamic_cast<MatrixTransform*>(hit.nodePath[3]);
+        modelMatrixPicked = modelMatrixTransformPicked->getMatrix();
         auto geometra = dynamic_cast<Geometry*>(hit.drawable.get());
         auto vertexs =  dynamic_cast<Vec3Array*>(geometra->getVertexArray());
-        Vec3 center;
-        cout << "vertexs:" << endl;
 
         for(auto v : *vertexs) {
-            auto mv = (v * matrix->getMatrix());
-            auto sample = point - mv;
-            auto difference = sample.normalize();
+            for(auto wm : hit.drawable->getWorldMatrices()) {
+                auto mv = (v * wm);
+                auto sample = point - mv;
+                auto difference = sample.normalize();
 
-            if(difference < score) {
-                score = difference;
-                center = mv;
+                if(difference < score) {
+                    score = difference;
+                    vertexPicked = mv;
+                }
             }
         }
-
-        cout << "point:" << point << endl;
-        cout << "center:" << center << endl;
-
-//        Vec3 pickedObjectCenter;
-//        for(auto wm : hit.drawable->getWorldMatrices()) {
-//            auto sample = point - wm.getTrans();
-//            auto difference = sample.normalize();
-
-//            if(difference < score) {
-//                score = difference;
-//                pickedObjectCenter = wm.getTrans();
-//            }
-//        }
-//        auto hoverObjectCenter = pickedObjectCenter + hit.drawable->getBound().center();
-//        auto hoverObject = hit.drawable;
     }
     return true;
     case GUIEventAdapter::PUSH:
-    if(!sPressed) break;
+        if(!sPressed) break;
+        lbPressed = true;
+    return true;
+    case GUIEventAdapter::DRAG:
+        if(!sPressed) break;
+        if(!view->computeIntersections(ea.getX(),ea.getY(),lis)) {
+            cout << "compute faild:" << endl;
+            modelMatrixTransformPicked->setMatrix(modelMatrixPicked);
+        } else {
+            auto hit  = *lis.begin();
+            auto point = hit.getWorldIntersectPoint();
+            auto score = DBL_MAX;
+            cout << "point:" << point << endl;
 
+            if(modelMatrixTransformPicked == dynamic_cast<MatrixTransform*>(hit.nodePath[3])) {
+                return true;
+            }
+
+            auto geometra = dynamic_cast<Geometry*>(hit.drawable.get());
+            auto vertexs =  dynamic_cast<Vec3Array*>(geometra->getVertexArray());
+
+            for(auto v : *vertexs) {
+                for(auto wm : hit.drawable->getWorldMatrices()) {
+                    auto mv = (v * wm);
+                    auto sample = point - mv;
+                    auto difference = sample.normalize();
+
+                    if(difference < score) {
+                        score = difference;
+                        vertexTargeted = mv;
+                    }
+                }
+            }
+
+            Vec3 trans = -(vertexPicked - vertexTargeted);
+            cout << "trans:" << trans << endl;
+            modelMatrixTransformPicked->setMatrix(modelMatrixPicked * Matrix::translate(trans));
+        }
     return true;
     case GUIEventAdapter::RELEASE:
     if(!sPressed) break;
+    lbPressed = false;
+    modelMatrixPicked = modelMatrixTransformPicked->getMatrix();
     return true;
     }
     return false;
