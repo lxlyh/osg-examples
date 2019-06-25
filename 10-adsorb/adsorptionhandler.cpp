@@ -1,4 +1,4 @@
-#include "adsorptionhandler.h"
+﻿#include "adsorptionhandler.h"
 
 #include <osgUtil/LineSegmentIntersector>
 using namespace osgUtil;
@@ -13,10 +13,8 @@ using namespace osg;
 #include <iostream>
 using namespace std;
 
-std::ostream& operator<<(std::ostream& out,Vec3 v3) {
-    out << "x:" << v3.x() << " y:" << v3.y() << " z:" << v3.z();
-    return out;
-}
+const int sizeMinimumOfNodePath = 4;
+const int indexFirstOfPicked = sizeMinimumOfNodePath - 1;
 
 AdsorptionHandler::AdsorptionHandler() : sPressed(false),lbPressed(false)
 {}
@@ -26,23 +24,22 @@ bool AdsorptionHandler::handle(const GUIEventAdapter& ea,GUIActionAdapter& aa) {
     LineSegmentIntersector::Intersections lis;
 
     switch(ea.getEventType()) {
-    case GUIEventAdapter::KEYDOWN:
-        if(GUIEventAdapter::KEY_S == ea.getKey()) sPressed = true;
-    return true;
-    case GUIEventAdapter::KEYUP:
-        if(GUIEventAdapter::KEY_S == ea.getKey()) sPressed = false;
-    return true;
     case GUIEventAdapter::MOVE: {
-        if(!sPressed || lbPressed) break;
+        if(lbPressed) break;
         if(!view->computeIntersections(ea.getX(),ea.getY(),lis)) break;
-        auto hit  = *lis.begin();
+        LineSegmentIntersector::Intersection hit;
+        for(auto li : lis) {
+            if(sizeMinimumOfNodePath <= li.nodePath.size()) {
+                hit = li;
+                break;
+            }
+        }
 
+        if(sizeMinimumOfNodePath > hit.nodePath.size()) break;
         auto point = hit.getWorldIntersectPoint();
         auto score = DBL_MAX;
 
-        cout << "point:" << point << endl;
-
-        modelMatrixTransformPicked = dynamic_cast<MatrixTransform*>(hit.nodePath[3]);
+        modelMatrixTransformPicked = dynamic_cast<MatrixTransform*>(hit.nodePath[indexFirstOfPicked]);
         modelMatrixPicked = modelMatrixTransformPicked->getMatrix();
         auto geometra = dynamic_cast<Geometry*>(hit.drawable.get());
         auto vertexs =  dynamic_cast<Vec3Array*>(geometra->getVertexArray());
@@ -62,21 +59,23 @@ bool AdsorptionHandler::handle(const GUIEventAdapter& ea,GUIActionAdapter& aa) {
     }
     return true;
     case GUIEventAdapter::PUSH:
-        if(!sPressed) break;
+        if(GUIEventAdapter::LEFT_MOUSE_BUTTON != ea.getButtonMask()) break;
+        if(!modelMatrixTransformPicked.valid()) break;
         lbPressed = true;
     return true;
     case GUIEventAdapter::DRAG:
-        if(!sPressed) break;
+        if(GUIEventAdapter::LEFT_MOUSE_BUTTON != ea.getButtonMask()) break;
+        if(!lbPressed) break;
         if(!view->computeIntersections(ea.getX(),ea.getY(),lis)) {
-            cout << "compute faild:" << endl;
             modelMatrixTransformPicked->setMatrix(modelMatrixPicked);
         } else {
             auto hit  = *lis.begin();
+            if(sizeMinimumOfNodePath > hit.nodePath.size()) break;
             auto point = hit.getWorldIntersectPoint();
             auto score = DBL_MAX;
-            cout << "point:" << point << endl;
 
             if(modelMatrixTransformPicked == dynamic_cast<MatrixTransform*>(hit.nodePath[3])) {
+                modelMatrixTransformPicked->setMatrix(modelMatrixPicked);
                 return true;
             }
 
@@ -97,14 +96,14 @@ bool AdsorptionHandler::handle(const GUIEventAdapter& ea,GUIActionAdapter& aa) {
             }
 
             Vec3 trans = -(vertexPicked - vertexTargeted);
-            cout << "trans:" << trans << endl;
             modelMatrixTransformPicked->setMatrix(modelMatrixPicked * Matrix::translate(trans));
         }
     return true;
     case GUIEventAdapter::RELEASE:
-    if(!sPressed) break;
-    lbPressed = false;
-    modelMatrixPicked = modelMatrixTransformPicked->getMatrix();
+        if(GUIEventAdapter::LEFT_MOUSE_BUTTON != ea.getButton()) break;
+        if(!modelMatrixTransformPicked.valid()) break;
+        lbPressed = false;
+        modelMatrixPicked = modelMatrixTransformPicked->getMatrix();
     return true;
     }
     return false;

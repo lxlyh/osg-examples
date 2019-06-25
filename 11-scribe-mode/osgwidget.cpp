@@ -1,26 +1,18 @@
 #include "osgwidget.h"
-#include "adsorptionhandler.h"
+#include "scribednodevisitor.h"
 
 OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
 {
     gw = new GraphicsWindowEmbedded(0, 0, width(), height());
     world = new Group();
-    world->setName("initWorld");
     globelScene = new Group();
 
     auto model = readNodeFile("../OpenSceneGraph-Data/glider.osg");
-    globelScene->setName("ground");
-
-    MatrixTransform *pos1 = new MatrixTransform,*pos2 = new MatrixTransform;
-    pos1->setMatrix(Matrix::translate(-2,0,0));
-    pos2->setMatrix(Matrix::translate(2,0,0));
-
-    pos1->addChild(model);
-    pos2->addChild(model);
-
-    globelScene->addChild(pos1);
-    globelScene->addChild(pos2);
+    globelScene->addChild(model);
     world->addChild(globelScene);
+
+    ScribedNodeVisitor nv;
+    globelScene->accept(nv);
 
     viewer = new Viewer();
     viewer->setSceneData(world);
@@ -29,7 +21,6 @@ OSGWidget::OSGWidget(QWidget* parent) : QOpenGLWidget (parent)
     viewer->getCamera()->setProjectionMatrixAsPerspective(35.0, 1.0 * this->width() / this->height(), 1, 10000.0);
     viewer->getCamera()->setViewport(new Viewport(0, 0, this->width(), this->height()));
     viewer->setCameraManipulator(new osgGA::OrbitManipulator);
-    globelScene->addEventCallback(new AdsorptionHandler());
 }
 
 void OSGWidget::resizeGL(int width, int height)
@@ -105,11 +96,13 @@ void OSGWidget::wheelEvent(QWheelEvent *event)
 
 void OSGWidget::keyPressEvent(QKeyEvent* event)
 {
-    gw->getEventQueue()->keyPress((osgGA::GUIEventAdapter::KeySymbol) event->nativeVirtualKey());
+    UnScribedNodeVisitor nv2;
+    globelScene->accept(nv2);
+    gw->getEventQueue()->keyPress((osgGA::GUIEventAdapter::KeySymbol) *(event->text().toUtf8().data()));
 }
 
 void OSGWidget::keyReleaseEvent(QKeyEvent* event)
 {
-    gw->getEventQueue()->keyRelease((osgGA::GUIEventAdapter::KeySymbol) event->nativeVirtualKey());
+    gw->getEventQueue()->keyRelease((osgGA::GUIEventAdapter::KeySymbol)*(event->text().toUtf8().data()));
 }
 

@@ -1,4 +1,4 @@
-#ifndef ADSORPTIONHANDLER_H
+﻿#ifndef ADSORPTIONHANDLER_H
 #define ADSORPTIONHANDLER_H
 
 #include <osg/Node>
@@ -10,6 +10,9 @@ using namespace osgGA;
 
 class AdsorptionHandler : public GUIEventHandler
 {
+    static const auto sizeMinimumOfNodePath = 4;
+    static const auto indexFirstOfPicked = sizeMinimumOfNodePath - 1;
+    static const auto KEY_S = 83;
 public:
     AdsorptionHandler();
     virtual bool handle(const GUIEventAdapter& ea,GUIActionAdapter& aa);
